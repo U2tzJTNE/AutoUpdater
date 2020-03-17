@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.novoda.bintray-release'
 
 android {
     compileSdkVersion 29
@@ -8,7 +9,7 @@ android {
         minSdkVersion 19
         targetSdkVersion 29
         versionCode 1
-        versionName "1.0"
+        versionName "0.0.1"
         consumerProguardFiles 'consumer-rules.pro'
     }
 
@@ -24,4 +25,31 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.1.0'
+}
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.novoda:bintray-release:0.9.2'
+    }
+}
+tasks.withType(Javadoc) {
+    options.addStringOption('encoding', 'UTF-8')
+    options.addStringOption('Xdoclint:none', '-quiet')
+}
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+publish {
+    userOrg = 'u2tzjtne'
+    repoName = 'android'
+    groupId = 'com.u2tzjtne'
+    artifactId = 'autoupdater'
+    uploadName = 'AutoUpdater'
+    bintrayUser = properties.getProperty("bintray.user")
+    bintrayKey = properties.getProperty("bintray.apikey")
+    publishVersion = '0.0.1'
+    desc = 'An Android automatic update library, which can realize unattended update.'
+    website = 'https://github.com/U2tzJTNE/AutoUpdater'
+    dryRun = false
 }

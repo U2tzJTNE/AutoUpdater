@@ -6,5 +6,5 @@ import androidx.core.content.FileProvider;
 /**
  * @author u2tzjtne
  */
-public class DownloaderFileProvider extends FileProvider {
+public class DownloadFileProvider extends FileProvider {
 }

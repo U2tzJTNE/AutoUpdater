@@ -25,18 +25,6 @@ public class DownloadReceiver extends BroadcastReceiver {
                 TextUtils.equals(intent.getAction(), (DownloadManager.ACTION_NOTIFICATION_CLICKED))) {
             queryFileUri(context, downId);
         }
-        //网络中断时结束当前下载
-        if (!NetworkUtils.isConnected() && downId >= 0) {
-            DownloadManager dManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-            if (dManager != null) {
-                LogUtils.debug("网络断开");
-                dManager.remove(downId);
-            } else {
-                LogUtils.debug("DownloadManager is null");
-            }
-        } else {
-            LogUtils.debug("downId: " + downId);
-        }
     }
 
     private void queryFileUri(Context context, long downloadId) {
@@ -76,6 +64,4 @@ public class DownloadReceiver extends BroadcastReceiver {
             c.close();
         }
     }
-
-
 }
