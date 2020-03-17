@@ -17,11 +17,17 @@ import android.os.Message;
 import android.text.TextUtils;
 
 import com.u2tzjtne.autoupdater.InstallUtils;
-import com.u2tzjtne.autoupdater.PermissionsHelper;
 import com.u2tzjtne.autoupdater.R;
+import com.u2tzjtne.autoupdater.permission.EasyPermission;
+import com.u2tzjtne.autoupdater.permission.GrantResult;
+import com.u2tzjtne.autoupdater.permission.NextAction;
+import com.u2tzjtne.autoupdater.permission.Permission;
+import com.u2tzjtne.autoupdater.permission.PermissionRequestListener;
+import com.u2tzjtne.autoupdater.permission.RequestPermissionRationalListener;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * @author u2tzjtne
@@ -89,7 +95,7 @@ public class Downloader implements Application.ActivityLifecycleCallbacks {
                     return;
                 }
             } else {
-                //TODO 文件已存在 直接安装
+                //文件已存在 直接安装
                 InstallUtils.install(context, downloadFile);
                 return;
             }
@@ -365,18 +371,32 @@ public class Downloader implements Application.ActivityLifecycleCallbacks {
     }
 
     private void checkPermissions() {
+        EasyPermission.with(context)
+                .addPermissions(Permission.Group.STORAGE)//存储
+                .request(new PermissionRequestListener() {
+                    @Override
+                    public void onGrant(Map<String, GrantResult> result) {
+                        //权限申请返回
+                        boolean allGrant = true;
+                        for (GrantResult grantResult : result.values()) {
+                            if (grantResult == GrantResult.DENIED) {
+                                allGrant = false;
+                                break;
+                            }
+                        }
+                        if (allGrant) {
+                            download();
+                        } else {
+                            Utils.showToast(context, "拒绝了授权");
+                        }
+                    }
 
-        PermissionsHelper.newInstance().requestPermissions(new PermissionsHelper.PermissionListener() {
-            @Override
-            public void onGranted() {
-                download();
-            }
-
-            @Override
-            public void onDenied() {
-                Utils.showToast(context, "取消了授权");
-            }
-        }, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE);
+                    @Override
+                    public void onCancel(String stopPermission) {
+                        //在addRequestPermissionRationaleHandler的处理函数里面调用了NextAction.next(NextActionType.STOP,就会中断申请过程，直接回调到这里来
+                        Utils.showToast(context, "取消了授权");
+                    }
+                });
     }
 
 

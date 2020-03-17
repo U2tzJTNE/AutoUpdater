@@ -35,6 +35,16 @@ public class AutoUpdater {
             return this;
         }
 
+        public Builder setDownloadDir(String downloadDir) {
+            mDownloadDir = downloadDir;
+            return this;
+        }
+
+        public Builder setDownloadFileName(String downloadFileName) {
+            mDownloadFileName = downloadFileName;
+            return this;
+        }
+
         public Builder setNotificationTitle(String notificationTitle) {
             mNotificationTitle = notificationTitle;
             return this;
