@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.widget.Toast;
 
 
@@ -87,5 +88,21 @@ public class InstallUtils {
         } catch (Throwable e) {
             Toast.makeText(cxt, "安装失败：" + e.getMessage(), Toast.LENGTH_LONG).show();
         }
+    }
+
+    /**
+     * 安装APK
+     *
+     * @param apkPath APK文件的本地路径
+     */
+    public static void install(Context cxt, String apkPath) {
+        if (TextUtils.isEmpty(apkPath)) {
+            return;
+        }
+        File apkFile = new File(apkPath);
+        if (apkFile == null || !apkFile.exists()) {
+            return;
+        }
+        install(cxt, apkFile);
     }
 }

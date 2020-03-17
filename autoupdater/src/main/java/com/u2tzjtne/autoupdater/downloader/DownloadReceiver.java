@@ -8,6 +8,8 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import com.u2tzjtne.autoupdater.InstallUtils;
+
 /**
  * @author u2tzjtne
  */
@@ -49,9 +51,14 @@ public class DownloadReceiver extends BroadcastReceiver {
                     break;
                 case DownloadManager.STATUS_SUCCESSFUL:
                     LogUtils.debug("STATUS_SUCCESSFUL");
-                    String downloadFileUrl = c
-                            .getString(c.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI));
-                    LogUtils.debug("downloadFileUrl: " + downloadFileUrl);
+                    String downloadFilePath = c
+                            .getString(c.getColumnIndex(DownloadManager.COLUMN_LOCAL_FILENAME));
+                    //安装apk
+                    if (TextUtils.isEmpty(downloadFilePath)) {
+                        return;
+                    }
+                    LogUtils.debug("downloadFilePath: " + downloadFilePath);
+                    InstallUtils.install(context, downloadFilePath);
                     break;
                 case DownloadManager.STATUS_FAILED:
                     LogUtils.debug("STATUS_FAILED");

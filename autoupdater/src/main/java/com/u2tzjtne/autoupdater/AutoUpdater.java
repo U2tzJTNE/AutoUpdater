@@ -1,11 +1,11 @@
 package com.u2tzjtne.autoupdater;
 
-import android.content.Context;
-import android.telephony.mbms.DownloadProgressListener;
+import android.app.Activity;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
+import com.u2tzjtne.autoupdater.downloader.Downloader;
 import com.u2tzjtne.autoupdater.downloader.Utils;
 
 /**
@@ -13,21 +13,21 @@ import com.u2tzjtne.autoupdater.downloader.Utils;
  */
 public class AutoUpdater {
 
-    public static Builder with(@NonNull Context context) {
+    public static Builder with(@NonNull Activity context) {
         return new Builder(context);
     }
 
     public static class Builder {
-        Context mContext;
+        Activity mContext;
         String mApkPath;
-        String mDownloadPath;
+        String mDownloadDir;
+        String mDownloadFileName;
         String mNotificationTitle;
-        boolean mShowNotification = true;
-        DownloadProgressListener mDownloadProgressListener;
+        boolean mShowNotification;
+        Downloader.ProgressListener mDownloadProgressListener;
 
-        Builder(Context context) {
+        Builder(Activity context) {
             mContext = context;
-            mDownloadPath = mContext.getCacheDir().getAbsolutePath();
         }
 
         public Builder setApkPath(String apkPath) {
@@ -45,24 +45,52 @@ public class AutoUpdater {
             return this;
         }
 
-        public Builder setDownloadProgressListener(DownloadProgressListener listener) {
+        public Builder setDownloadProgressListener(Downloader.ProgressListener listener) {
             mDownloadProgressListener = listener;
             return this;
         }
 
-        public void start() {
-           //进行相应的操作
-            if (TextUtils.isEmpty(mApkPath)){
-                mApkPath = mContext.getCacheDir().getAbsolutePath();
-            }
-            if (Utils.isExternalPath(mContext,mApkPath)){
-                //TODO 请求存储权限
-                
-            }
-            if (Utils.isDownloadPath(mApkPath)){
-                //TODO 下载apk
-            }
+        /**
+         * 初始化自动安装
+         */
+        private void initAutoInstall() {
+            // "未知来源"设置
+            InstallUtils.checkSetting(mContext);
+            // "辅助功能"设置
+            AccessibilityUtils.checkSetting(mContext, AutoInstallService.class);
+        }
 
+        public void start() {
+            initAutoInstall();
+            //进行相应的操作
+            if (TextUtils.isEmpty(mApkPath)) {
+                return;
+            }
+            if (Utils.isDownloadPath(mApkPath)) {
+                //下载apk
+                if (TextUtils.isEmpty(mDownloadDir)) {
+                    mDownloadDir = mContext.getCacheDir().getAbsolutePath();
+                }
+                if (TextUtils.isEmpty(mDownloadFileName)) {
+                    mDownloadFileName = Utils.getFileNameForUrl(mApkPath);
+                }
+                if (TextUtils.isEmpty(mNotificationTitle)) {
+                    mNotificationTitle = Utils.getFileNameForUrl(mApkPath);
+                }
+                Downloader.Builder builder = new Downloader.Builder(mContext);
+                builder.setDownloadUrl(mApkPath)
+                        .setFileName(mDownloadFileName)
+                        .setDirName(mDownloadDir)
+                        .showNotification(mShowNotification)
+                        .setNotificationTitle(mNotificationTitle)
+                        .addProgressListener(mDownloadProgressListener)
+                        .registerDownloadReceiver()
+                        .overlayDownload()
+                        .start();
+            } else {
+                //安装
+                InstallUtils.install(mContext, mApkPath);
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.u2tzjtne.autoupdater.downloader;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Application;
 import android.app.DownloadManager;
@@ -16,6 +17,7 @@ import android.os.Message;
 import android.text.TextUtils;
 
 import com.u2tzjtne.autoupdater.InstallUtils;
+import com.u2tzjtne.autoupdater.PermissionsHelper;
 import com.u2tzjtne.autoupdater.R;
 
 import java.io.File;
@@ -34,7 +36,7 @@ public class Downloader implements Application.ActivityLifecycleCallbacks {
     private Activity context;
     private DownloadManager downloadManager;
     private long mTaskId;
-    private boolean hideNotification = false;
+    private boolean showNotification = false;
     private boolean allowedOverRoaming = false;
     private boolean overlayDownload = false;
     private DownloadReceiver downloadReceiver;
@@ -47,23 +49,6 @@ public class Downloader implements Application.ActivityLifecycleCallbacks {
         this.context = context;
         //注册全局生命周期回调
         context.getApplication().registerActivityLifecycleCallbacks(this);
-    }
-
-    /**
-     * 检查权限 首先判断此下载路径是否需要下载权限
-     */
-    private void checkPermissions() {
-        //1.拿到下载路径
-        //2.判断是否需要权限
-        //3.如果需要权限 请求权限
-        //4.开始下载
-//        AndPermission.with(context)
-//                .runtime()
-//                .permission(Permission.Group.STORAGE)
-//                .onGranted(data -> download())
-//                .onDenied(data -> Utils.showToast(context, "取消了授权"))
-//                .start();
-
     }
 
     private void download() {
@@ -119,8 +104,8 @@ public class Downloader implements Application.ActivityLifecycleCallbacks {
 
         request.setTitle(TextUtils.isEmpty(title) ? fileName : title);
 
-        request.setNotificationVisibility(hideNotification ? DownloadManager.Request.VISIBILITY_HIDDEN
-                : DownloadManager.Request.VISIBILITY_VISIBLE);
+        request.setNotificationVisibility(showNotification ? DownloadManager.Request.VISIBILITY_VISIBLE
+                : DownloadManager.Request.VISIBILITY_HIDDEN);
         if (TextUtils.isEmpty(fileName)) {
             fileName = Utils.getFileNameForUrl(downloadUrl);
         }
@@ -244,6 +229,155 @@ public class Downloader implements Application.ActivityLifecycleCallbacks {
             return false;
         }
     });
+
+
+    public static class Builder {
+
+        private Downloader mDownloader;
+
+        public Builder(Activity context) {
+            synchronized (Downloader.class) {
+                if (mDownloader == null) {
+                    synchronized (Downloader.class) {
+                        mDownloader = new Downloader(context);
+                    }
+                }
+            }
+        }
+
+        /**
+         * 设置下载下来的文件名
+         *
+         * @param fileName 文件的名字
+         * @return
+         */
+        public Builder setFileName(String fileName) {
+            mDownloader.fileName = fileName;
+            return this;
+        }
+
+        /**
+         * 设置下载路径
+         *
+         * @param filePath 自定义的全路径
+         * @return
+         */
+        public Builder setFilePath(String filePath) {
+            mDownloader.filePath = filePath;
+            return this;
+        }
+
+        /**
+         * 设置下载目录
+         *
+         * @param dirName sd卡的文件夹名字
+         * @return
+         */
+        public Builder setDirName(String dirName) {
+            mDownloader.dirName = dirName;
+            return this;
+        }
+
+        /**
+         * 设置下载的链接地址
+         *
+         * @param downloadUrl 下载链接
+         * @return
+         */
+        public Builder setDownloadUrl(String downloadUrl) {
+            mDownloader.downloadUrl = downloadUrl;
+            return this;
+        }
+
+        /**
+         * 通知栏显示的标题
+         *
+         * @param title 标题
+         * @return
+         */
+        public Builder setNotificationTitle(String title) {
+            mDownloader.title = title;
+            return this;
+        }
+
+        /**
+         * 隐藏通知栏
+         *
+         * @return
+         */
+        public Builder showNotification(boolean showNotification) {
+            mDownloader.showNotification = showNotification;
+            return this;
+        }
+
+        /**
+         * 覆盖下载
+         *
+         * @return
+         */
+        public Builder overlayDownload() {
+            mDownloader.overlayDownload = true;
+            return this;
+        }
+
+        public Builder addProgressListener(ProgressListener listener) {
+            if (listener != null) {
+                mDownloader.addProgressListener(listener);
+            }
+            return this;
+        }
+
+        public Builder registerDownloadReceiver() {
+            mDownloader.registerDownloadReceiver();
+            return this;
+        }
+
+        /**
+         * 是否为debug模式，会输出很多log信息
+         *
+         * @return
+         */
+        public Builder debug() {
+            LogUtils.isDebug = true;
+            return this;
+        }
+
+        /**
+         * 允许漫游网络可下载
+         *
+         * @return
+         */
+        public Builder allowedOverRoaming() {
+            mDownloader.allowedOverRoaming = true;
+            return this;
+        }
+
+        /**
+         * 开始下载
+         *
+         * @return
+         */
+        public Downloader start() {
+            mDownloader.checkPermissions();
+            return mDownloader;
+        }
+
+    }
+
+    private void checkPermissions() {
+
+        PermissionsHelper.newInstance().requestPermissions(new PermissionsHelper.PermissionListener() {
+            @Override
+            public void onGranted() {
+                download();
+            }
+
+            @Override
+            public void onDenied() {
+                Utils.showToast(context, "取消了授权");
+            }
+        }, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE);
+    }
 
 
     /**
