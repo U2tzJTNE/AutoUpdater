@@ -37,8 +37,7 @@ public class AccessibilityUtils {
                     public void onClick(DialogInterface dialog, int which) {
                         jumpToSetting(cxt);
                     }
-                })
-                .show();
+                }).show();
     }
 
     /**

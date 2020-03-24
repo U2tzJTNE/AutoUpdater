@@ -1,6 +1,7 @@
 package com.u2tzjtne.autoupdater;
 
 import android.app.Activity;
+import android.os.Environment;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -79,7 +80,7 @@ public class AutoUpdater {
             if (Utils.isDownloadPath(mApkPath)) {
                 //下载apk
                 if (TextUtils.isEmpty(mDownloadDir)) {
-                    mDownloadDir = mContext.getCacheDir().getAbsolutePath();
+                    mDownloadDir = Environment.DIRECTORY_DOWNLOADS;
                 }
                 if (TextUtils.isEmpty(mDownloadFileName)) {
                     mDownloadFileName = Utils.getFileNameForUrl(mApkPath);

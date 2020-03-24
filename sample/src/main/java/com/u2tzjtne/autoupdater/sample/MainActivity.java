@@ -9,8 +9,6 @@ import android.widget.TextView;
 import com.u2tzjtne.autoupdater.AutoUpdater;
 import com.u2tzjtne.autoupdater.downloader.Downloader;
 
-import java.util.Objects;
-
 /**
  * @author u2tzjtne
  */
@@ -35,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.btn_net:
                 AutoUpdater.with(this)
                         .setApkPath("http://www.u2tzjtne.cn:10080/files/Debug_home_2.0.23.apk")
-                        .setDownloadDir(Objects.requireNonNull(getExternalCacheDir()).getAbsolutePath())
+                        .setDownloadDir("AutoUpdater")
                         .setDownloadFileName("App.apk")
                         .setDownloadProgressListener(new Downloader.ProgressListener() {
                             @Override
