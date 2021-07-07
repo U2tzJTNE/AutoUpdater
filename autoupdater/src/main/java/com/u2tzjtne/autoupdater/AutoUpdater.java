@@ -65,10 +65,12 @@ public class AutoUpdater {
          * 初始化自动安装
          */
         private void initAutoInstall() {
-            // "未知来源"设置
-            InstallUtils.checkSetting(mContext);
-            // "辅助功能"设置
-            AccessibilityUtils.checkSetting(mContext, AutoInstallService.class);
+            if (!RootUtils.isRoot()){
+                // "未知来源"设置
+                InstallUtils.checkSetting(mContext);
+                // "辅助功能"设置
+                AccessibilityUtils.checkSetting(mContext, AutoInstallService.class);
+            }
         }
 
         public void start() {

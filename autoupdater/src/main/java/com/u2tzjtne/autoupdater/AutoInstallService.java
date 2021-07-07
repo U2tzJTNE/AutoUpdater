@@ -23,14 +23,14 @@ public class AutoInstallService extends AccessibilityService {
     protected void onServiceConnected() {
         Log.i(TAG, "onServiceConnected: ");
         Toast.makeText(this, getString(R.string.aby_label) + "开启了", Toast.LENGTH_LONG).show();
-        // 服务开启，模拟两次返回键，退出系统设置界面（实际上还应该检查当前UI是否为系统设置界面，但一想到有些厂商可能篡改设置界面，懒得适配了...）
-        performGlobalAction(GLOBAL_ACTION_BACK);
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                performGlobalAction(GLOBAL_ACTION_BACK);
-            }
-        }, DELAY_PAGE);
+//        // 服务开启，模拟两次返回键，退出系统设置界面（实际上还应该检查当前UI是否为系统设置界面，但一想到有些厂商可能篡改设置界面，懒得适配了...）
+//        performGlobalAction(GLOBAL_ACTION_BACK);
+//        mHandler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                performGlobalAction(GLOBAL_ACTION_BACK);
+//            }
+//        }, DELAY_PAGE);
     }
 
     @Override
@@ -47,26 +47,26 @@ public class AutoInstallService extends AccessibilityService {
             //不写完整包名，是因为某些手机(如小米)安装器包名是自定义的
             return;
         }
-        /*
-        某些手机安装页事件返回节点有可能为null，无法获取安装按钮
-        例如华为mate10安装页就会出现event.getSource()为null，所以取巧改变当前页面状态，重新获取节点。
-        该方法在华为mate10上生效，但其它手机没有验证...(目前小米手机没有出现这个问题)
-        */
-        Log.i(TAG, "onAccessibilityEvent: " + event);
-        AccessibilityNodeInfo eventNode = event.getSource();
-        if (eventNode == null) {
-            Log.i(TAG, "eventNode: null, 重新获取eventNode...");
-            // 打开最近页面
-            performGlobalAction(GLOBAL_ACTION_RECENTS);
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    // 返回安装页面
-                    performGlobalAction(GLOBAL_ACTION_BACK);
-                }
-            }, DELAY_PAGE);
-            return;
-        }
+//        /*
+//        某些手机安装页事件返回节点有可能为null，无法获取安装按钮
+//        例如华为mate10安装页就会出现event.getSource()为null，所以取巧改变当前页面状态，重新获取节点。
+//        该方法在华为mate10上生效，但其它手机没有验证...(目前小米手机没有出现这个问题)
+//        */
+//        Log.i(TAG, "onAccessibilityEvent: " + event);
+//        AccessibilityNodeInfo eventNode = event.getSource();
+//        if (eventNode == null) {
+//            Log.i(TAG, "eventNode: null, 重新获取eventNode...");
+//            // 打开最近页面
+//            performGlobalAction(GLOBAL_ACTION_RECENTS);
+//            mHandler.postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    // 返回安装页面
+//                    performGlobalAction(GLOBAL_ACTION_BACK);
+//                }
+//            }, DELAY_PAGE);
+//            return;
+//        }
 
         /*
         模拟点击->自动安装，只验证了小米5s plus(MIUI 9.8.4.26)、小米Redmi 5A(MIUI 9.2)、华为mate 10
@@ -86,7 +86,7 @@ public class AutoInstallService extends AccessibilityService {
         findTxtClick(rootNode, "下一步");
         findTxtClick(rootNode, "打开");
         // 回收节点实例来重用
-        eventNode.recycle();
+        //eventNode.recycle();
         rootNode.recycle();
     }
 
@@ -103,9 +103,9 @@ public class AutoInstallService extends AccessibilityService {
         }
         Log.i(TAG, "findTxtClick: " + txt + ", " + nodes.size() + ", " + nodes);
         for (AccessibilityNodeInfo node : nodes) {
-            if (node.isEnabled() && node.isClickable() && (node.getClassName().equals("android.widget.Button")
+            if (node.isEnabled() && node.isClickable() && ("android.widget.Button".contentEquals(node.getClassName())
                     // 兼容华为安装界面的复选框
-                    || node.getClassName().equals("android.widget.CheckBox")
+                    || "android.widget.CheckBox".contentEquals(node.getClassName())
             )) {
                 node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
             }

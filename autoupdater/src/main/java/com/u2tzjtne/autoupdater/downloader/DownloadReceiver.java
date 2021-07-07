@@ -5,6 +5,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 
@@ -51,8 +53,18 @@ public class DownloadReceiver extends BroadcastReceiver {
                     break;
                 case DownloadManager.STATUS_SUCCESSFUL:
                     LogUtils.debug("STATUS_SUCCESSFUL");
-                    String downloadFilePath = c
-                            .getString(c.getColumnIndex(DownloadManager.COLUMN_LOCAL_FILENAME));
+                    String downloadFilePath ="";
+                    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
+                        int fileUriIdx = c.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
+                        String fileUri = c.getString(fileUriIdx);
+                        if (fileUri != null) {
+                            downloadFilePath = Uri.parse(fileUri).getPath();
+                        }
+                    } else {
+                        //过时的方式：DownloadManager.COLUMN_LOCAL_FILENAME
+                        int fileNameIdx = c.getColumnIndex(DownloadManager.COLUMN_LOCAL_FILENAME);
+                        downloadFilePath = c.getString(fileNameIdx);
+                    }
                     //安装apk
                     if (TextUtils.isEmpty(downloadFilePath)) {
                         return;

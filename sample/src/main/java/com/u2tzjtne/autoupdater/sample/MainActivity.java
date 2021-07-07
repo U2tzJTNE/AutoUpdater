@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.btn_net:
                 AutoUpdater.with(this)
-                        .setApkPath("http://www.u2tzjtne.cn:10080/files/Debug_home_2.0.23.apk")
+                        .setApkPath("https://question.aegis-info.com/ssl/static/robot_apk/MobileHelper_publicnet_release_2.3.14_2021-05-07.apk")
                         .setDownloadDir("AutoUpdater")
                         .setDownloadFileName("App.apk")
                         .setDownloadProgressListener(new Downloader.ProgressListener() {

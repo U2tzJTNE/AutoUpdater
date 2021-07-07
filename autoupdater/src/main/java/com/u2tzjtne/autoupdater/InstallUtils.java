@@ -71,22 +71,27 @@ public class InstallUtils {
      * @param apkFile APK文件的本地路径
      */
     public static void install(Context cxt, File apkFile) {
-        //唤醒屏幕,以便辅助功能模拟用户点击"安装"
-        AccessibilityUtils.wakeUpScreen(cxt);
-        try {
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            Uri uri;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                // Android 7.0以上不允许Uri包含File实际路径，需要借助FileProvider生成Uri（或者调低targetSdkVersion小于Android 7.0欺骗系统）
-                uri = FileProvider.getUriForFile(cxt, cxt.getPackageName() + ".fileProvider", apkFile);
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            } else {
-                uri = Uri.fromFile(apkFile);
+        //判断有没有Root权限
+        if (RootUtils.isRoot()){
+            RootUtils.rootInstallApk(apkFile);
+        }else {
+            //唤醒屏幕,以便辅助功能模拟用户点击"安装"
+            AccessibilityUtils.wakeUpScreen(cxt);
+            try {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                Uri uri;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    // Android 7.0以上不允许Uri包含File实际路径，需要借助FileProvider生成Uri（或者调低targetSdkVersion小于Android 7.0欺骗系统）
+                    uri = FileProvider.getUriForFile(cxt, cxt.getPackageName() + ".fileProvider", apkFile);
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                } else {
+                    uri = Uri.fromFile(apkFile);
+                }
+                intent.setDataAndType(uri, "application/vnd.android.package-archive");
+                cxt.startActivity(intent);
+            } catch (Throwable e) {
+                Toast.makeText(cxt, "安装失败：" + e.getMessage(), Toast.LENGTH_LONG).show();
             }
-            intent.setDataAndType(uri, "application/vnd.android.package-archive");
-            cxt.startActivity(intent);
-        } catch (Throwable e) {
-            Toast.makeText(cxt, "安装失败：" + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -100,7 +105,7 @@ public class InstallUtils {
             return;
         }
         File apkFile = new File(apkPath);
-        if (apkFile == null || !apkFile.exists()) {
+        if (!apkFile.exists()) {
             return;
         }
         install(cxt, apkFile);
